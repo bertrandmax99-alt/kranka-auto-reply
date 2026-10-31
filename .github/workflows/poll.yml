@@ -17,7 +17,7 @@ jobs:
           POLL_URL: ${{ secrets.POLL_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          code=$(curl -s -o out.json -w "%{http_code}" -H "Authorization: Bearer $CRON_SECRET" "$POLL_URL")
+          code=$(curl -s -o out.json -w "%{http_code}" -H "Authorization: Bearer $(printf %s "$CRON_SECRET" | tr -d "\r\n")" "$POLL_URL")
           # only the summary goes in the log; commenter usernames stay out of it
           jq -c '.summary // .' out.json || cat out.json
           test "$code" = "200"

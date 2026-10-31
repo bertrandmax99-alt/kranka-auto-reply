@@ -4,8 +4,9 @@ import { run } from "../lib/run.js";
 // Auth: "Authorization: Bearer <CRON_SECRET>".
 // MODE=live sends DMs; anything else is shadow mode (reports what it would send, sends nothing).
 export default async function handler(req, res) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
+  // trim: a secret pasted from a file often carries a trailing newline
+  const secret = (process.env.CRON_SECRET || "").trim();
+  if (!secret || (req.headers.authorization || "").trim() !== `Bearer ${secret}`) {
     return res.status(401).json({ error: "unauthorized" });
   }
   const { META_SYSTEM_USER_TOKEN, IG_USER_ID, IG_USERNAME, LIVE_SINCE, MODE } = process.env;
