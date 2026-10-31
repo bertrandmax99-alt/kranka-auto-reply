@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { matchRule, renderDm } from "../lib/rules.js";
+import { matchRule, renderDm, renderText, RULES } from "../lib/rules.js";
 import { plan } from "../lib/run.js";
 import { verifyGithubOidc } from "../lib/github-oidc.js";
 
@@ -67,4 +67,16 @@ test("comments from before the bot went live are ignored", () => {
   const liveSince = Date.parse("2026-10-31T11:00:00Z");
   const actions = plan([{ media, comments: [c("1", "presto"), c("2", "presto", { timestamp: "2026-10-31T11:30:00+0000" })] }], me, now, undefined, liveSince);
   assert.deepEqual(actions.map((a) => a.commentId), ["2"]);
+});
+
+test("every rule has link buttons Instagram accepts, and a plain-text fallback with the links", () => {
+  for (const r of RULES) {
+    assert.ok(r.buttons.length >= 1 && r.buttons.length <= 3, r.keyword);
+    for (const b of r.buttons) {
+      assert.ok(b.title.length <= 20, `${r.keyword}: "${b.title}" is over 20 characters`);
+      assert.match(b.url, /^https:\/\//);
+    }
+    assert.ok(renderDm(r, "budi").includes(r.buttons[0].url), r.keyword);
+    assert.ok(!renderText(r, "budi").includes("http"), `${r.keyword}: button text should not repeat the links`);
+  }
 });
