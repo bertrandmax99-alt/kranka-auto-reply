@@ -2,6 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { matchRule, renderDm } from "../lib/rules.js";
 import { plan } from "../lib/run.js";
+import { verifyGithubOidc } from "../lib/github-oidc.js";
+
+test("OIDC check rejects tokens that are not GitHub-signed JWTs", async () => {
+  await assert.rejects(verifyGithubOidc(""), /not a JWT/);
+  await assert.rejects(verifyGithubOidc("a.b"), /not a JWT/);
+  const fake = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+  await assert.rejects(verifyGithubOidc(`${fake({ alg: "HS256" })}.${fake({})}.sig`), /unexpected alg/);
+});
 
 test("keyword matches as a whole word, any case", () => {
   assert.equal(matchRule("PRESTO")?.keyword, "PRESTO");

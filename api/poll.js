@@ -1,12 +1,26 @@
 import { run } from "../lib/run.js";
+import { verifyGithubOidc } from "../lib/github-oidc.js";
 
 // Called every few minutes by the GitHub Actions schedule (Vercel's free cron runs only daily).
-// Auth: "Authorization: Bearer <CRON_SECRET>".
+// Auth: "Authorization: Bearer <token>", where the token is either the GitHub Actions OIDC token
+// of this repo's workflow (no shared secret needed) or, optionally, CRON_SECRET.
 // MODE=live sends DMs; anything else is shadow mode (reports what it would send, sends nothing).
-export default async function handler(req, res) {
+async function authorized(header) {
+  const token = (header || "").replace(/^Bearer\s+/i, "").trim();
+  if (!token) return false;
   // trim: a secret pasted from a file often carries a trailing newline
   const secret = (process.env.CRON_SECRET || "").trim();
-  if (!secret || (req.headers.authorization || "").trim() !== `Bearer ${secret}`) {
+  if (secret && token === secret) return true;
+  try {
+    await verifyGithubOidc(token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export default async function handler(req, res) {
+  if (!(await authorized(req.headers.authorization))) {
     return res.status(401).json({ error: "unauthorized" });
   }
   const { META_SYSTEM_USER_TOKEN, IG_USER_ID, IG_USERNAME, LIVE_SINCE, MODE } = process.env;

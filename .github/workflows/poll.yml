@@ -7,17 +7,22 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
+# The bot accepts this workflow's GitHub-signed OIDC token, so no shared secret is needed.
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   poll:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
       - name: Call the bot
-        env:
-          POLL_URL: ${{ secrets.POLL_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          code=$(curl -s -o out.json -w "%{http_code}" -H "Authorization: Bearer $(printf %s "$CRON_SECRET" | tr -d "\r\n")" "$POLL_URL")
+          token=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=kranka-auto-reply" | jq -r .value)
+          code=$(curl -s -o out.json -w "%{http_code}" -H "Authorization: Bearer $token" \
+            "https://kranka-auto-reply.vercel.app/api/poll")
           # only the summary goes in the log; commenter usernames stay out of it
           jq -c '.summary // .' out.json || cat out.json
           test "$code" = "200"

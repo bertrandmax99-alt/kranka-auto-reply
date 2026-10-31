@@ -16,10 +16,10 @@ Comment-to-DM for @cecelinachang. Someone comments a keyword (PRESTO, BAKSO, LAP
 | `IG_USER_ID` | `17841471547009409` (@cecelinachang) |
 | `IG_USERNAME` | `cecelinachang` |
 | `LIVE_SINCE` | ISO time the bot was switched on, e.g. `2026-11-01T00:00:00+07:00`. Only posts published after it, and comments made after it, are answered: old reels and old chat are never touched. |
-| `CRON_SECRET` | random string; same value as the GitHub secret |
+| `CRON_SECRET` | optional; the scheduler authenticates with its GitHub OIDC token instead |
 | `MODE` | `shadow` until checked, then `live` |
 
-GitHub secrets: `POLL_URL` (`https://<vercel-domain>/api/poll`) and `CRON_SECRET`.
+GitHub needs no secrets: the workflow sends its GitHub-signed OIDC token (audience `kranka-auto-reply`), and the bot only accepts tokens from this repo on main.
 
 ## Meta app
 Kranka Auto Reply, App ID 2573702766475442, KrankaStudio portfolio, Instagram API with Facebook (Unified) login. Comment webhooks need Advanced Access (App Review + Business Verification); until then this polls.
