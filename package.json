@@ -1,0 +1,10 @@
+{
+  "name": "kranka-auto-reply",
+  "private": true,
+  "type": "module",
+  "description": "Comment-to-DM auto reply for @cecelinachang (keyword comment → one private reply with the WhatsApp link)",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
